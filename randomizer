@@ -4,6 +4,7 @@ local runService = game:GetService("RunService")
 
 local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
 
+-- Pet chances table
 local eggChances = {
     ["Common Egg"] = {["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33},
     ["Uncommon Egg"] = {["Black Bunny"] = 25, ["Chicken"] = 25, ["Cat"] = 25, ["Deer"] = 25},
@@ -33,12 +34,6 @@ local autoRandomizerOn = false
 local lastRerollTime = 0
 local autoCooldown = 60
 local nextAutoTime = 0
-
-local stopPets = {["Raccoon"] = true, ["Dragon Fly"] = true, ["Queen Bee"] = true, ["Kitsune"] = true, ["Disco Bee"] = true, ["Butterfly"] = true}
-
-local function shouldAutoStop(petName)
-    return stopPets[petName] or false
-end
 
 local function weightedRandom(options)
     local valid = {}
@@ -75,7 +70,6 @@ local function getNonRepeatingRandomPet(eggName, lastPet)
     return selectedPet
 end
 
--- 🌈 Rainbow ESP GUI
 local function createEspGui(object, labelText)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "FakePetESP"
@@ -87,26 +81,14 @@ local function createEspGui(object, labelText)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.new(1, 1, 1)
     label.TextStrokeTransparency = 0
     label.TextScaled = true
     label.Font = Enum.Font.SourceSansBold
-    label.TextColor3 = Color3.new(1, 1, 1)
     label.Text = labelText
     label.Parent = billboard
+
     billboard.Parent = object
-
-    -- Rainbow text for stopPets
-    local split = string.split(labelText, " | ")
-    if #split == 2 and stopPets[split[2]] then
-        coroutine.wrap(function()
-            while label.Parent do
-                local t = tick()
-                label.TextColor3 = Color3.fromHSV((t % 5) / 5, 1, 1)
-                task.wait(0.1)
-            end
-        end)()
-    end
-
     return billboard
 end
 
@@ -162,6 +144,12 @@ bgFrame.BorderColor3 = Color3.fromRGB(45, 90, 20)
 bgFrame.BorderSizePixel = 4
 bgFrame.Parent = gui
 
+local stopPets = {["Raccoon"] = true, ["Dragon Fly"] = true, ["Queen Bee"] = true, ["Kitsune"] = true, ["Disco Bee"] = true, ["Butterfly"] = true}
+
+local function shouldAutoStop(petName)
+    return stopPets[petName] or false
+end
+
 local timerLabel = Instance.new("TextLabel", bgFrame)
 timerLabel.Size = UDim2.new(0, 200, 0, 30)
 timerLabel.Position = UDim2.new(0, 10, 0, 145)
@@ -171,7 +159,7 @@ timerLabel.Text = "Next Auto: OFF"
 timerLabel.TextScaled = true
 timerLabel.Font = Enum.Font.SourceSansBold
 
--- ⏱️ Auto Randomizer Loop (60s)
+-- Auto Randomizer with 60s delay
 runService.Heartbeat:Connect(function()
     if autoRandomizerOn and tick() >= nextAutoTime then
         for objectId, data in pairs(displayedEggs) do
@@ -180,6 +168,7 @@ runService.Heartbeat:Connect(function()
                 data.label.Text = data.eggName .. " | " .. pet
                 data.lastPet = pet
             end
+
             if autoStopOn and shouldAutoStop(pet) then
                 autoRandomizerOn = false
                 timerLabel.Text = "Auto stopped: Found " .. pet
