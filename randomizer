@@ -1,4 +1,4 @@
--- Updated script: 10s cooldown on Randomize Pets, 60s countdown before Auto Randomizer, Kitsune text rainbow
+-- Full updated script with 10s cooldown, 60s auto start delay, and rainbow Kitsune effect
 
 local players = game:GetService("Players")
 local collectionService = game:GetService("CollectionService")
@@ -9,7 +9,7 @@ local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
 local function applyRainbowText(label)
     coroutine.wrap(function()
         local hue = 0
-        while label.Text:find("Kitsune") and label.Parent and label:IsDescendantOf(game) do
+        while label and label.Text and label.Text:find("Kitsune") and label:IsDescendantOf(game) do
             label.TextColor3 = Color3.fromHSV(hue, 1, 1)
             hue = (hue + 0.01) % 1
             task.wait(0.05)
@@ -17,15 +17,34 @@ local function applyRainbowText(label)
     end)()
 end
 
--- [eggChances, realESP, functions, etc. stay the same — no change to your logic above]
+-- Pet chances table
+local eggChances = {
+    ["Common Egg"] = { ["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33 },
+    ["Uncommon Egg"] = { ["Black Bunny"] = 25, ["Chicken"] = 25, ["Cat"] = 25, ["Deer"] = 25 },
+    ["Rare Egg"] = { ["Orange Tabby"] = 33.33, ["Spotted Deer"] = 25, ["Pig"] = 16.67, ["Rooster"] = 16.67, ["Monkey"] = 8.33 },
+    ["Legendary Egg"] = { ["Cow"] = 42.55, ["Silver Monkey"] = 42.55, ["Sea Otter"] = 10.64, ["Turtle"] = 2.13, ["Polar Bear"] = 2.13 },
+    ["Mythic Egg"] = { ["Grey Mouse"] = 37.5, ["Brown Mouse"] = 26.79, ["Squirrel"] = 26.79, ["Red Giant Ant"] = 8.93, ["Red Fox"] = 0 },
+    ["Bug Egg"] = { ["Snail"] = 40, ["Giant Ant"] = 35, ["Caterpillar"] = 25, ["Praying Mantis"] = 0, ["Dragon Fly"] = 0 },
+    ["Night Egg"] = { ["Hedgehog"] = 47, ["Mole"] = 23.5, ["Frog"] = 21.16, ["Echo Frog"] = 8.35, ["Night Owl"] = 0, ["Raccoon"] = 0 },
+    ["Bee Egg"] = { ["Bee"] = 65, ["Honey Bee"] = 20, ["Bear Bee"] = 10, ["Petal Bee"] = 5, ["Queen Bee"] = 0 },
+    ["Anti Bee Egg"] = { ["Wasp"] = 55, ["Tarantula Hawk"] = 31, ["Moth"] = 14, ["Butterfly"] = 0, ["Disco Bee"] = 0 },
+    ["Common Summer Egg"] = { ["Starfish"] = 50, ["Seafull"] = 25, ["Crab"] = 25 },
+    ["Rare Summer Egg"] = { ["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10 },
+    ["Paradise Egg"] = { ["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1 },
+    ["Premium Night Egg"] = { ["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10 },
+    ["Dinosaur Egg"] = { ["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33 },
+    ["Zen Egg"] = { ["Shiba Inu"] = 40, ["Nihonzaru"] = 31, ["Kitsune"] = 0.08, ["Tanuki"] = 20.82, ["Tanchozuru"] = 4.6, ["Kappa"] = 3.5 }
+}
 
--- Add these at the top of button logic:
+-- (leave the rest of the existing code as-is)
+
+-- Cooldown logic:
 local isCooldown = false
 local cooldownTime = 10
 local autoCooldown = false
 local autoCooldownTime = 60
 
--- Replace rerollBtn logic
+-- Replace reroll button logic
 rerollBtn.MouseButton1Click:Connect(function()
     if isCooldown then return end
     isCooldown = true
@@ -36,7 +55,11 @@ rerollBtn.MouseButton1Click:Connect(function()
         if pet and data.label then
             data.label.Text = data.eggName .. " | " .. pet
             data.lastPet = pet
-            if pet == "Kitsune" then applyRainbowText(data.label) else data.label.TextColor3 = Color3.new(1,1,1) end
+            if pet == "Kitsune" then
+                applyRainbowText(data.label)
+            else
+                data.label.TextColor3 = Color3.new(1, 1, 1)
+            end
         end
     end
 
@@ -48,14 +71,13 @@ rerollBtn.MouseButton1Click:Connect(function()
     isCooldown = false
 end)
 
--- Replace autoBtn logic
+-- Replace auto button logic
 autoBtn.MouseButton1Click:Connect(function()
     if autoRandomizerOn or autoCooldown then
         autoRandomizerOn = false
         autoBtn.Text = "🔄Auto Randomizer: OFF"
         return
     end
-
     autoCooldown = true
     for i = autoCooldownTime, 1, -1 do
         autoBtn.Text = "⏳Starting in " .. i .. "s"
@@ -66,7 +88,8 @@ autoBtn.MouseButton1Click:Connect(function()
     autoBtn.Text = "🔄Auto Randomizer: ON"
 end)
 
--- Replace runService.Heartbeat logic
+-- Replace heartbeat randomizer
+autoRandomizerOn = false
 runService.Heartbeat:Connect(function()
     if autoRandomizerOn then
         for objectId, data in pairs(displayedEggs) do
@@ -74,7 +97,11 @@ runService.Heartbeat:Connect(function()
             if pet and data.label then
                 data.label.Text = data.eggName .. " | " .. pet
                 data.lastPet = pet
-                if pet == "Kitsune" then applyRainbowText(data.label) else data.label.TextColor3 = Color3.new(1,1,1) end
+                if pet == "Kitsune" then
+                    applyRainbowText(data.label)
+                else
+                    data.label.TextColor3 = Color3.new(1, 1, 1)
+                end
             end
             if autoStopOn and shouldAutoStop(pet) then
                 autoRandomizerOn = false
