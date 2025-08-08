@@ -1,2 +1,75 @@
-local Spawner = loadstring(game:HttpGet("https://gitlab.com/darkiedarkie/dark/-/raw/main/Spawner.lua"))()
-Spawner.Load()
+-- Roblox Fullscreen Loading Screen Script (PC & Mobile) - No GUI Flash Animations
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LoadingScreen"
+screenGui.IgnoreGuiInset = true -- Covers full screen
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main frame (FULLSCREEN)
+local mainFrame = Instance.new("Frame")
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Title label (top)
+local title = Instance.new("TextLabel")
+title.AnchorPoint = Vector2.new(0.5, 0)
+title.Position = UDim2.new(0.5, 0, 0.1, 0)
+title.Size = UDim2.new(0.9, 0, 0.1, 0)
+title.BackgroundTransparency = 1
+title.Text = "RAYFIELD PETS AND SEED SPAWNER"
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextStrokeTransparency = 0.5
+title.Parent = mainFrame
+
+-- Middle loading text
+local loadingText = Instance.new("TextLabel")
+loadingText.AnchorPoint = Vector2.new(0.5, 0.5)
+loadingText.Position = UDim2.new(0.5, 0, 0.5, 0)
+loadingText.Size = UDim2.new(0.6, 0, 0.15, 0)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "1% Loading..."
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextScaled = true
+loadingText.TextColor3 = Color3.fromRGB(0, 255, 0)
+loadingText.TextStrokeTransparency = 0.5
+loadingText.Parent = mainFrame
+
+-- Bottom hint text
+local hintText = Instance.new("TextLabel")
+hintText.AnchorPoint = Vector2.new(0.5, 1)
+hintText.Position = UDim2.new(0.5, 0, 0.95, 0) -- near bottom
+hintText.Size = UDim2.new(0.9, 0, 0.08, 0)
+hintText.BackgroundTransparency = 1
+hintText.Text = "please wait the loading finish to continue"
+hintText.Font = Enum.Font.Gotham
+hintText.TextScaled = true
+hintText.TextColor3 = Color3.fromRGB(255, 255, 255)
+hintText.TextStrokeTransparency = 0.6
+hintText.Parent = mainFrame
+
+-- Loading animation: 1% to 100% over 50 seconds
+for i = 1, 100 do
+	loadingText.Text = i .. "% Loading..."
+	wait(0.5) -- 0.5s * 100 = 50 seconds
+end
+
+-- Fade out after loading
+wait(0.5)
+local fadeTween = TweenService:Create(mainFrame, TweenInfo.new(1), {
+	BackgroundTransparency = 1
+})
+fadeTween:Play()
+fadeTween.Completed:Wait()
+screenGui:Destroy()
